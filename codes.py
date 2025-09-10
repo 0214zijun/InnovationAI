@@ -458,3 +458,189 @@ for ticker in df_merged['company'].unique():
 
 print("Week 6 sentiment analysis complete.  Outputs saved to", output_dir)
 3
+
+
+# week 7
+
+### Week 7: Dataset Integration for ML
+import os
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
+# Paths
+tech_dir = "week3/featured"   # 技术指标目录
+sentiment_path = "week6/sentiment/sentiment_price_merge.csv"  # 情绪数据
+output_dir = "week7/final_dataset"
+os.makedirs(output_dir, exist_ok=True)
+
+#1. Load technical features (Week 3)
+tech_frames = []
+for file in sorted(os.listdir(tech_dir)):
+    if file.endswith(".csv"):
+        ticker = file.replace("_price.csv", "")
+        df = pd.read_csv(os.path.join(tech_dir, file), parse_dates=["Date"])
+        df["Ticker"] = ticker
+        tech_frames.append(df)
+
+tech_df = pd.concat(tech_frames, ignore_index=True)
+
+# 2. Load sentiment features (Week 6)
+sentiment_df = pd.read_csv(sentiment_path, parse_dates=["date"])
+sentiment_df.rename(columns={"date": "Date", "company": "Ticker"}, inplace=True)
+
+# 3. Merge technical + sentiment features 
+# 使用 suffix 避免冲突
+merged = pd.merge(
+    tech_df, sentiment_df,
+    on=["Date", "Ticker"],
+    how="inner",
+    suffixes=("_tech", "_sent")
+)
+
+print("Columns after merge:", merged.columns.tolist())
+
+#  4. Create target variable (Next-day return) 
+# 自动检测 Close 列
+if "Close_tech" in merged.columns:
+    close_col = "Close_tech"
+elif "Close_sent" in merged.columns:
+    close_col = "Close_sent"
+elif "Close" in merged.columns:
+    close_col = "Close"
+else:
+    raise KeyError("No Close column found in merged dataset!")
+
+merged["NextDay_Return"] = merged.groupby("Ticker")[close_col].pct_change().shift(-1)
+merged["Target"] = (merged["NextDay_Return"] > 0).astype(int)
+merged = merged.dropna(subset=["Target"])
+
+#  5. Split into features & target 
+X = merged.drop(columns=["NextDay_Return", "Target", "Date", "Ticker"], errors="ignore")
+y = merged["Target"]
+
+#  清理数据 
+# 删除常数列
+constant_cols = [col for col in X.columns if X[col].nunique() <= 1]
+if constant_cols:
+    print("Dropping constant columns:", constant_cols)
+    X = X.drop(columns=constant_cols)
+
+# 填补 NaN
+X = X.fillna(0)
+
+# === 6. Train/Validation/Test Split (70/15/15) ===
+X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.30, shuffle=False)
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.50, shuffle=False)
+
+# === 7. Feature Scaling ===
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_val_scaled = scaler.transform(X_val)
+X_test_scaled = scaler.transform(X_test)
+
+# 转回 DataFrame
+X_train_scaled = pd.DataFrame(X_train_scaled, columns=X_train.columns, index=X_train.index)
+X_val_scaled   = pd.DataFrame(X_val_scaled, columns=X_val.columns, index=X_val.index)
+X_test_scaled  = pd.DataFrame(X_test_scaled, columns=X_test.columns, index=X_test.index)
+
+# === 8. Save Final ML-ready Dataset ===
+X_train_scaled.to_csv(os.path.join(output_dir, "X_train.csv"), index=False)
+X_val_scaled.to_csv(os.path.join(output_dir, "X_val.csv"), index=False)
+X_test_scaled.to_csv(os.path.join(output_dir, "X_test.csv"), index=False)
+
+y_train.to_csv(os.path.join(output_dir, "y_train.csv"), index=False)
+y_val.to_csv(os.path.join(output_dir, "y_val.csv"), index=False)
+y_test.to_csv(os.path.join(output_dir, "y_test.csv"), index=False)
+
+merged.to_csv(os.path.join(output_dir, "merged_full_dataset.csv"), index=False)
+
+print(" Week 7 complete: Final ML dataset saved in 'week7/final_dataset'")
+
+
+#week 8
+
+import os
+import pandas as pd
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score, precision_score, recall_score
+import numpy as np
+
+# -----------------------------
+# 1. Load Week 7 pre-split files
+# -----------------------------
+base_dir = os.path.join("week7", "final_dataset")
+
+X_train = pd.read_csv(os.path.join(base_dir, "X_train.csv"))
+X_val   = pd.read_csv(os.path.join(base_dir, "X_val.csv"))
+X_test  = pd.read_csv(os.path.join(base_dir, "X_test.csv"))
+
+y_train = pd.read_csv(os.path.join(base_dir, "y_train.csv")).values.ravel()
+y_val   = pd.read_csv(os.path.join(base_dir, "y_val.csv")).values.ravel()
+y_test  = pd.read_csv(os.path.join(base_dir, "y_test.csv")).values.ravel()
+
+# Combine train + val for final training
+X_train_full = pd.concat([X_train, X_val], axis=0)
+y_train_full = np.concatenate([y_train, y_val])
+
+print(" Data loaded")
+print("Train shape:", X_train_full.shape, " Test shape:", X_test.shape)
+
+# -----------------------------
+# 2. Train Models
+# -----------------------------
+results = []
+
+# Logistic Regression (Classification)
+log_reg = LogisticRegression(max_iter=500)
+log_reg.fit(X_train_full, y_train_full)
+y_pred = log_reg.predict(X_test)
+
+acc = accuracy_score(y_test, y_pred)
+prec = precision_score(y_test, y_pred, zero_division=0)
+rec = recall_score(y_test, y_pred, zero_division=0)
+results.append(["Logistic Regression", "Classification", acc, prec, rec, ""])
+
+# Random Forest Classifier
+rf_class = RandomForestClassifier(n_estimators=200, max_depth=5, random_state=42)
+rf_class.fit(X_train_full, y_train_full)
+y_pred = rf_class.predict(X_test)
+
+acc = accuracy_score(y_test, y_pred)
+prec = precision_score(y_test, y_pred, zero_division=0)
+rec = recall_score(y_test, y_pred, zero_division=0)
+results.append(["Random Forest (Class)", "Classification", acc, prec, rec, ""])
+
+# Linear Regression (Regression on NextDay_Return)
+lin_reg = LinearRegression()
+lin_reg.fit(X_train_full, y_train_full)
+y_pred = lin_reg.predict(X_test)
+
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+results.append(["Linear Regression", "Regression", mse, r2, None, ""])
+
+# Random Forest Regressor
+rf_reg = RandomForestRegressor(n_estimators=200, max_depth=5, random_state=42)
+rf_reg.fit(X_train_full, y_train_full)
+y_pred = rf_reg.predict(X_test)
+
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+results.append(["Random Forest (Reg)", "Regression", mse, r2, None, ""])
+
+# -----------------------------
+# 3. Save Results to Week 8 folder
+# -----------------------------
+output_dir = os.path.join("week8", "results")
+os.makedirs(output_dir, exist_ok=True)
+
+results_df = pd.DataFrame(results, columns=["Model", "Task", "Metric1", "Metric2", "Metric3", "Params"])
+results_df.to_csv(os.path.join(output_dir, "week8_model_eval.csv"), index=False)
+
+print(" Week 8 complete: Results saved in", output_dir)
+print(results_df)
+
+#week 9
+

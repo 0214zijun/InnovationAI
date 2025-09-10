@@ -161,3 +161,70 @@ https://newsapi.org/
 - Logistic regression highlighted which features had predictive signal (e.g., RSI, short-term volatility)  
 - Noted imbalance in `Return_Label` distribution (more 0s than 1s), requiring resampling in later weeks  
 - Confirmed all outputs and plots exported correctly to `week6/eda_outputs/`  
+
+
+# week 7  
+
+### Dataset Integration for ML  
+- Loaded technical indicator datasets from `week3/featured/` and daily sentiment scores from `week6/sentiment/sentiment_price_merge.csv`  
+- Merged datasets on `Date` and `Ticker` into a unified ML dataset  
+- Created target variables:  
+  - `NextDay_Return`: percentage change in next-day closing price  
+  - `Target`: binary classification label (1 if positive return, 0 if negative)  
+- Cleaned feature set by:  
+  - Dropping constant/zero-variance columns  
+  - Filling missing values with `0`  
+- Performed train/validation/test split (70/15/15) with chronological order preserved  
+- Scaled numeric features using `StandardScaler`  
+- Saved outputs to `week7/final_dataset/`:  
+  - `X_train.csv`, `X_val.csv`, `X_test.csv`  
+  - `y_train.csv`, `y_val.csv`, `y_test.csv`  
+  - `merged_full_dataset.csv`  
+
+---
+
+## Progress and Issues Resolved  
+- Resolved `KeyError: 'Close'` by auto-detecting the correct close price column (`Close_tech`) after merge  
+- Fixed duplicate column naming by applying suffixes (`_tech`, `_sent`) during merge  
+- Eliminated `RuntimeWarning: invalid value in divide` by dropping constant columns before scaling  
+- Verified train/validation/test splits and scaling consistency; dataset confirmed ready for ML training  
+
+
+
+# Week 8 – Model Training & Tuning
+
+### Tasks Completed
+- Trained **baseline models** on ML-ready dataset:
+  - Linear Regression (for regression tasks).
+  - Random Forest (classification & regression).
+  - XGBoost / LightGBM (boosting models).
+  - Neural Network (tested small feed-forward net).
+- Evaluated models with appropriate metrics:
+  - Regression → **MSE, R²**.
+  - Classification (up vs down) → **Accuracy, Precision, Recall**.
+- Applied **GridSearchCV / RandomizedSearchCV** for hyperparameter tuning.
+
+### Milestones
+- Identified **best-performing model** based on validation scores.
+- Generated **evaluation report** comparing models (metrics, training time, overfitting risks).
+- Selected top model as candidate for Week 9 backtesting.
+
+
+### Week 9 – Backtesting Framework
+
+### Tasks Completed
+- Implemented **backtesting logic**:  
+  - **Buy** if predicted return > threshold *and* sentiment is positive.  
+  - **Sell** if predicted return < threshold *and* sentiment is negative.  
+- Calculated performance metrics:  
+  - **Total Return**  
+  - **Sharpe Ratio**  
+  - **Max Drawdown**  
+- Benchmarked against alternative strategies:  
+  - **Buy-and-Hold** baseline  
+  - **Random trading strategy**  
+
+### Milestones
+- Produced **backtest results** with performance charts (equity curve, drawdowns).  
+- Completed **baseline comparison** between Buy/Hold and AI-driven strategy.  
+- Documented insights for refining strategy in Week 10.
