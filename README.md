@@ -7,8 +7,9 @@
 
 
 
+<div align="center">
+
 ```text
-print("""
         _ooOoo_
        o888888o
        88" . "88
@@ -28,9 +29,7 @@ ___`. .'  /--.--\  `. . __
 =====`-.____`-.___\_____/___.-`____.-'=====
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
            ALL BLESSINGS      NEVER BUGGING
-""")
-
-
+</div> ```
 
 # Innovation AI — Quantitative Finance & Machine Learning Internship
 
