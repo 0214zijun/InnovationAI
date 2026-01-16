@@ -32,50 +32,57 @@ print(r"""
 """)
 
 
+# Innovation AI — Quantitative Finance & Machine Learning Internship
+
+**Author:** Zijun Qiu  
+**Duration:** July – September 2025  
+**Organization:** Innovation AI  
+**Role:** Quantitative Finance & Machine Learning Intern  
+
 ---
 
 ## Project Overview
 
-This 12-week internship focuses on applying machine learning, data science, and natural language processing (NLP) techniques to financial markets. The primary objective is to build an AI-driven investment bot that predicts stock prices, integrates financial news sentiment, and generates real-time Buy/Sell/Hold recommendations for technology sector equities.
+This repository documents a 12-week quantitative research internship focused on applying **data science, machine learning, and statistical analysis** to U.S. equity markets.
+
+The project centers on building a **data-driven investment analysis pipeline**, integrating market price data, technical indicators, and financial metrics to support research, modeling, and backtesting workflows.
 
 ---
 
-## Project Components
+## Objectives
 
-### 1. **Data Collection**
-- Extracted historical OHLCV data for selected tech stocks using `yfinance`
-- Collected fundamental financial indicators (EPS, P/E ratio, revenue, cash flow)
-- Stored raw data in structured CSV format under version control
-
-### 2. **Data Preprocessing**
-- Cleaned and normalized raw data
-- Handled missing values and aligned time series indices
-- Generated quality reports on data integrity
-
-### 3. **Feature Engineering & EDA**
-- Created financial indicators (RSI, MACD, Bollinger Bands, moving averages)
-- Performed exploratory data analysis with correlation plots and trend charts
-
-### 4. **Sentiment Analysis**
-- Scraped and parsed financial news headlines
-- Applied FinBERT/VADER to quantify sentiment signals
-- Integrated sentiment scores with price-based features
-
-### 5. **Modeling**
-- Trained predictive models: Linear Regression, Random Forest, XGBoost, Neural Networks
-- Evaluated models using time-series-aware validation and financial performance metrics
-
-### 6. **Backtesting**
-- Simulated trading strategies based on model outputs and sentiment
-- Compared against baseline strategies (Buy-and-Hold, Random Walk)
-- Calculated Sharpe Ratio, Max Drawdown, and CAGR
-
-### 7. **AI Recommendation Bot**
-- Developed a decision engine to output real-time investment actions
-- Implemented a basic CLI (and optionally Streamlit UI)
-- Provided rationale and logs for every recommendation
+- Design a reproducible data pipeline for U.S. equity analysis  
+- Engineer technical and statistical features from time-series data  
+- Evaluate feature predictiveness using correlation and volatility analysis  
+- Support downstream modeling, experimentation, and backtesting  
 
 ---
 
-## 📁 Repository Structure
+## Data & Feature Engineering
+
+- Collected and processed **100,000+ rows of OHLCV time-series data** using `yfinance`
+- Engineered **15+ technical indicators**, including:
+  - SMA / EMA
+  - RSI
+  - MACD
+  - Bollinger Bands
+- Implemented:
+  - Missing value imputation
+  - Z-score and Min-Max normalization
+  - Multi-source data alignment on a daily frequency
+
+---
+
+## Methodology
+
+- Built preprocessing pipelines using **Python (Pandas, NumPy)**
+- Applied correlation and volatility-based screening to:
+  - Reduce noise
+  - Assess feature relevance
+- Structured outputs into **model-ready datasets** for downstream ML workflows
+- Ensured reproducibility through versioned scripts and standardized data formats
+
+---
+
+## Repository Structure
 
